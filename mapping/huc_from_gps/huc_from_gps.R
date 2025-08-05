@@ -1,5 +1,5 @@
 # load data (assumes current working directory is top of 'TCG' repo)
-monitoring_locations <- read.table('./code_snippets/huc_from_gps/exdata.tsv', sep = '\t', header=TRUE)
+monitoring_locations <- read.table('./mapping/huc_from_gps/exdata.tsv', sep = '\t', header=TRUE)
 
 # convert locations to sf
 sf_monitoring_locations <- sf::st_as_sf(monitoring_locations, coords = c("Long", "Lat"), crs=4326)
