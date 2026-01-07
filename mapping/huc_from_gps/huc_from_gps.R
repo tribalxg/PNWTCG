@@ -1,16 +1,16 @@
-# load data (assumes current working directory is top of 'TCG' repo)
+# load data (assumes current working directory is top of 'PNWTCG' repo)
 monitoring_locations <- read.table('./mapping/huc_from_gps/exdata.tsv', sep = '\t', header=TRUE)
 
-# convert locations to sf
+# convert locations to sf object
 sf_monitoring_locations <- sf::st_as_sf(monitoring_locations, coords = c("Long", "Lat"), crs=4326)
 
-#Subset Puget Sound HUCs
+# subset Western Washington HUCs for speed improvement later
 huc6s <- c('Coast' = '171001', 'Puget Sound' = '171100')
-wwa <- nhdplusTools::get_huc(id=huc6s, type='huc06') # manually define a restricted search area
+wwa <- nhdplusTools::get_huc(id = huc6s, type = 'huc06') # manually define the restricted search area
 huc_lvl <- 'huc12'
-wb_poly <- nhdplusTools::get_huc(sf::st_union(wwa), type = huc_lvl)
+wb_poly <- nhdplusTools::get_huc(sf::st_union(wwa), type = huc_lvl) # get_huc wants a single polygon, so st_union merges the two present in the wwa object
 
-# rows in wb_poly are huc polygons
+# rows in wb_poly are HUC polygons
 # find indexes for the rows in wb_poly that contain the points in sf_monitoring_locations
 wb_poly_idx <- sf::st_intersects(sf_monitoring_locations, wb_poly)
 

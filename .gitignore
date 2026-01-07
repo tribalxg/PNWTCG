@@ -47,3 +47,6 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# Scratch folder to place items you don't want to sync
+scratch/
