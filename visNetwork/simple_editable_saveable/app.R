@@ -37,7 +37,8 @@ server <- function(input, output) {
 
   output$network <- renderVisNetwork({
     visNetwork(net$nodes_base, net$edges_base) |> 
-      visOptions(manipulation = list(enabled = TRUE))
+      visOptions(manipulation = list(enabled = TRUE)) |> 
+      visNodes(physics = FALSE)
   })
 
   # if a node is changed in the network, update dataset
