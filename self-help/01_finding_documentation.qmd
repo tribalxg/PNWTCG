@@ -1,0 +1,72 @@
+---
+title: "Finding Documentation"
+execute:
+  eval: false
+---
+
+## Basic R function help
+The first thing to try when you want to find documentation for a function is the `?` operator.
+```{r}
+?mean
+```
+```{r}
+help(mean)
+```
+
+## Finding help for special functions
+Some functions have special characters in their names, such as `[` or `%in%`. To find help for these functions, you need to use backticks around the function name.
+```{r}
+?`[`
+```
+```{r}
+?`[[`
+```
+```{r}
+?`%in%`
+```
+
+## Finding help for functions in packages
+If you haven't loaded the package that contains the function you are interested in, the `?` operator may not work.
+```{r}
+?st_sf
+```
+```{r}
+?sf::st_sf # or help("st_sf", package = "sf")
+```
+```{r}
+??st_sf # or help.search("st_sf")
+```
+```{r}
+library(sf)
+?st_sf
+```
+
+## Finding help for generic S3 and S4 functions
+Some R functions are generic, meaning they have different methods for different classes of objects. For example, the `plot()` function has different methods for plotting data frames, time series, and other object types. Running `?plot` may give you general information about the function, but may not provide details about the specific method you are interested in.
+```{r}
+?plot
+```
+```{r}
+methods(plot)
+?plot.data.frame # help(plot.data.frame)
+```
+```{r}
+?plot.lm
+```
+
+## Finding help for R6 methods
+Some R packages use the R6 object-oriented system, which has a different way of defining methods. Use of `?` isn't standardized for these methods, but you can usually at least get into the documentation for the class and then click to the method you're interested in. For example, the `CmdStanModel` class in the `cmdstanr` package has a `sample()` method for fitting models. You can get help for this method by running:
+```{r, eval=FALSE}
+?CmdStanModel # and then click $sample()
+```
+`cmdstanr` also has shortcuts to get to specific method documentation:
+```{r, eval=FALSE}
+?'model-method-sample'
+```
+But the name of this shortcut is not standardized across other packages. Instead, use the help() function:
+```{r, eval=FALSE}
+help("sample", package = "cmdstanr")
+```
+
+## Finding help for functions that you wrote
+For the love of salmon, please annotate your code. For short scripts and on-the-fly helper functions, make sure to use comments to explain what the function does, what the inputs are, and what the outputs are. If you are using Positron and your function is defined anywhere in your project directory, you can right-click on the function name and select "Go to Definition" to jump to the code for that function (and the comments should be there too!). You can also use Ctrl+F to search for the function in your file, or Ctrl+Shift+F to search for the function name in your project directory. If you use consistent whitespace rules and unique function names, you can search for `function_name <-` to separate the function definition from other function references.

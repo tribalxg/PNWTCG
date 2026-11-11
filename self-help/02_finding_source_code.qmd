@@ -1,0 +1,38 @@
+---
+title: "Finding Source Code"
+---
+
+Sometimes, the documentation doesn't tell you everything you need to know. You need to get elbow-deep in the code
+
+## First attempt
+The source code for many functions can be found by simply calling the function without parentheses.
+```{r}
+hello_world <- \() {
+  print("Hello, world!")
+}
+hello_world()
+hello_world
+```
+
+## Finding the source code for S3 and S4 methods
+Generic functions, which have different methods for different classes of objects, require the specific method to be called. You can use the `methods()` function to see what methods are available for a generic function, and then append the method to the generic function name to see the source code for that specific method.
+```{r}
+methods(mean)
+mean.default
+```
+
+## Finding the source code for R6 methods
+R6 objects are a bit harder because the methods are stored in the object itself. If you have an R6 object, you can use the `$` operator and the name of the source just like a simpler function.
+```{r, eval=FALSE}
+library(cmdstanr)
+file <- file.path(cmdstan_path(), "examples/bernoulli/bernoulli.stan")
+mod  <- cmdstan_model(file)
+mod$sample
+```
+If you don't yet have an R6 object, the class name is usually the same as the function that creates it, and although that function may not be exported when you use library(), you can use the `:::` operator and find the method under public_methods.
+```{r, eval=FALSE}
+cmdstanr:::CmdStanModel$public_methods$sample
+```
+
+## Finding the One True Source
+Functions of course call other functions, and some call on tools that are written in another language or even compiled code. You'll have to follow that trail of breadcrumbs.

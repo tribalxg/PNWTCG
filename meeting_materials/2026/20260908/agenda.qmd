@@ -1,0 +1,26 @@
+---
+title: "Agenda"
+format:
+  html:
+    title-block-style: none
+---
+
+::: {style="text-align: center;"}
+
+# PNW Tribal Coding Group Agenda
+
+### September 8th, 2026, 2:00-3:30pm PDT
+
+:::
+
+### Agenda
+
+1. Welcome and Introductions
+2. Open questions and announcements
+3. Loops, the apply family, do.call, and purrr
+    a. Basic reasons for each (functional programming vs. imperative programming; speed and memory considerations)
+    b. [Debugging patterns](../../../self-help/03_debug_with_error_handling.qmd) (tryCatch, stop, warning, message)
+    c. Inline logic and anonymous functions
+    d. Segue to next session: modularization via functions, scripts, packages, box, and read_chunk!
+4. [Compare base to tidy: merge, join, and bind](../../../base_vs_tidy/merge_join_and_bind.qmd)
+5. Other tips and tricks

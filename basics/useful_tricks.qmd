@@ -1,0 +1,13 @@
+---
+title: "Useful tricks"
+---
+
+# dput() !
+Print code to the console that can be used to recreate the object
+```{r}
+hi <- c(1,2,3)
+dput(hi)
+
+hi2 <- 4:6
+dput(hi2)
+```

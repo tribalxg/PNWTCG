@@ -20,6 +20,7 @@
 
 # RStudio files
 .Rproj.user/
+.Rproj/
 
 # produced vignettes
 vignettes/*.html
@@ -50,3 +51,9 @@ rsconnect/
 
 # Scratch folder to place items you don't want to sync
 scratch/
+
+/.quarto/
+**/*.quarto_ipynb
+_quarto.yml
+
+/.luarc.json

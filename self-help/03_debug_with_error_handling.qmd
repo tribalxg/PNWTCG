@@ -1,0 +1,191 @@
+---
+title: "Debugging with error handling"
+execute:
+  error: true
+---
+
+When writing scripts, you rarely want a future run with new data to fail with a vague message like:
+
+```{r}
+#| echo: false
+warning("NAs introduced by coercion")
+```
+
+The code ran fine before! Did you run the script with a typo in a parameter? Or is there badly formatted data in your new input file? Which of the 10,000 rows has the bad data??
+
+If you're developing a tool or planning to reuse your script, you can save a lot of headaches in the long-run by writing your code to validate inputs and fail early with bespoke, informative messages.
+
+For instance, say you have a function that simply reads a csv and writes a new one with rounded values from a single column:
+
+```{r}
+round_column <- function(df, col_num_raw, prec_raw) {
+  col_num <- as.numeric(col_num_raw)
+  prec    <- as.numeric(prec_raw)
+  round(as.numeric(df[[col_num]]), digits = prec)
+}
+```
+
+You might run this function with a test dataset:
+
+```{r}
+test_data_1 <- data.frame(
+  labels = c("A", "B", "C"),
+  values = c(10.556, 21.891, 3.14159)
+)
+print(test_data_1)
+results_1 <- round_column(test_data_1, 2, 2)
+```
+
+And celebrate that it works!
+
+```{r}
+print(results_1)
+```
+
+But then you try some real data:
+
+```{r}
+test_data_2 <- data.frame(
+  labels = c("A", "B", "C"),
+  values = c(10.556, 21.891, '3.141S9')
+)
+print(test_data_2)
+results_2 <- round_column(test_data_2, 2, 2)
+```
+
+And get the generic warning. In this case, you can print the results to see that the problem was in the last row:
+
+```{r}
+print(results_2)
+```
+
+But it might not be obvious why. And with more complicated functions, it might not be so easy to see where the problem was. For instance, you could call the function with a non-numeric column number:
+
+```{r}
+results_3 <- round_column(test_data_2, "two", 2)
+```
+
+And get the exact same warning. Inspecting the results in this case doesn't really help you figure out what went wrong:
+
+```{r}
+print(results_3)
+```
+
+If you plan to use this function a lot, and the same errors are likely, then you can catch the problem pre-emptively and give a more informative custom warning message:
+
+```{r}
+round_column_2 <- function(df, col_num_raw, prec_raw) {
+  col_num <- suppressWarnings(as.numeric(col_num_raw))
+  if (is.na(col_num)) {
+    stop("The column number must be a numeric value.")
+  }
+  prec <- suppressWarnings(as.numeric(prec_raw))
+  if (is.na(prec)) {
+    stop("The precision must be a numeric value.")
+  }
+  in_values <- suppressWarnings(as.numeric(df[[col_num]]))
+  if (any(is.na(in_values))) {
+    warning("Row(s) ", paste(which(is.na(in_values)), collapse = ", "), " of the specified column contain(s) non-numeric values that cannot be rounded.")
+  }
+  round(in_values, digits = prec)
+}
+```
+
+In that function, I have used `stop()` where a non-numeric column number or precision would make it impossible to continue, and `warning()` where the function can still run but the user should be aware that some rows could not be processed. I also used `suppressWarnings()` to keep the console output more targeted. First, apply the function to the same test dataset as before:
+
+```{r}
+results_4 <- round_column_2(test_data_2, 2, 2)
+print(results_4)
+```
+
+And let's also see what happens when we give it a non-numeric column number:
+
+```{r}
+results_5 <- round_column_2(test_data_2, "two", 2)
+print(results_5)
+```
+
+Now let's see how this function behaves when looping over multiple columns. First create a new dataset:
+
+```{r}
+test_data_3 <- data.frame(
+  labels = c("A", "B", "C"),
+  values_1 = c(10.556, 21.891, '3.141S9'),
+  values_2 = c(1.234, 5.678, 9.012)
+)
+print(test_data_3)
+```
+
+Then run the function in a `for` loop over a vector of indices (note that the following code is intentionally written with 'bad form' in multiple ways):
+
+```{r}
+idx <- c(2,'S',3,4)
+results_6 <- matrix(nrow = nrow(test_data_3), ncol = 0)
+for (col in idx) {
+  res_local <- round_column_2(test_data_3, col, 2)
+  results_6 <- cbind(results_6, res_local)
+}
+colnames(results_6) <- idx[1:ncol(results_6)]
+```
+
+Warnings and an error. Let's inspect the results:
+
+```{r}
+print(results_6)
+```
+
+The first iteration partially worked, the second must have caused the error, and the third and fourth never ran. Depending on what we're doing, we might want to stop the loop when such an error occurs, or we might want to continue on to the next iteration. In the latter case, we can use `tryCatch()` to catch the error and continue:
+
+```{r}
+results_7 <- matrix(nrow = nrow(test_data_3), ncol = 0)
+for (col in idx) {
+  res_local <- tryCatch(
+    round_column_2(test_data_3, col, 2),
+    error = function(e) {
+      warning("Error in column ", col, ": ", e$message)
+      return(rep(NA, nrow(test_data_3)))
+    }
+  )
+  results_7 <- cbind(results_7, res_local)
+}
+colnames(results_7) <- idx
+```
+
+This runs the same function in the same way - but tryCatch catches the error, turns it into a warning, and returns a vector of NAs for that iteration. We see in our new warning that two columns had fatal errors: the second one, 'S', wasn't numeric and couldn't be mapped to the original data; and the fourth one, 4, didn't exist. Because we captured the original error message with `e$message`, we can link that specific warning to the specific column that caused it. And because we returned a vector of NAs, the loop continues to the next iteration and we can inspect the results:
+
+```{r}
+print(results_7)
+```
+
+This kind of error handling has also set us up nicely to use R's functional programming tools like `lapply()` and `purrr::map()`, which are often preferred to `for` loops for various reasons. If you're used to debugging `for` loops by inspecting partial results, you may be frustrated by the fact that `lapply()` and `map()` don't return partial results. But with tryCatch and custom error messages, you can still get informative feedback about what went wrong in a single iteration without stopping the entire process. Here's an example using `sapply()`:
+
+```{r}
+results_8 <- sapply(idx, function(col) {
+  tryCatch(
+    round_column_2(test_data_3, col, 2),
+    error = function(e) {
+      warning("Error in column ", col, ": ", e$message)
+      return(rep(NA, nrow(test_data_3)))
+    }
+  )
+})
+print(results_8)
+```
+
+The results are the same as before, but now we have more compact and efficient code. `sapply` automatically simplifies the output to a matrix and uses the column indices as column names. The error handling is the same, and we still get informative warnings about which columns caused issues. You can also use `purrr::map()` in a similar way (I'm not a tidyverse guy so this might not be the most idiomatic way to do it...):
+
+```{r}
+library(purrr)
+results_9 <- map(idx, function(col) {
+  tryCatch(
+    round_column_2(test_data_3, col, 2),
+    error = function(e) {
+      warning("Error in column ", col, ": ", e$message)
+      return(rep(NA, nrow(test_data_3)))
+    }
+  )
+}) %>% 
+  set_names(idx) %>% 
+  do.call(cbind, .)
+print(results_9)
+```

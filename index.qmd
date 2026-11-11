@@ -1,0 +1,11 @@
+---
+title: Home
+---
+
+This site contains rendered .qmd files in the same directory structure as the source repository.
+
+Use the navigation sidebar to browse the available documents.
+
+## Search
+
+Use the search box in the sidebar (or press <kbd>/</kbd>) to quickly find pages by title or content.

@@ -1,0 +1,21 @@
+.sortable-checklist ul.task-list {
+  padding-left: 0;
+}
+
+.sortable-checklist ul.task-list li {
+  list-style: none;
+  margin-bottom: 0.35rem;
+}
+
+.sortable-checklist ul.task-list input[type="checkbox"] {
+  pointer-events: none;
+}
+
+.sortable-checklist ul.task-list li.checklist-item-checked label {
+  color: #6c757d;
+  text-decoration: line-through;
+}
+
+.sortable-checklist ul.task-list li.checklist-item-checked input[type="checkbox"] {
+  opacity: 0.7;
+}

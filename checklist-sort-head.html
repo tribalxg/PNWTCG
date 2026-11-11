@@ -1,0 +1,26 @@
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".sortable-checklist ul.task-list").forEach((list) => {
+    const items = Array.from(list.querySelectorAll(":scope > li"));
+
+    items.forEach((item) => {
+      const checkbox = item.querySelector('input[type="checkbox"]');
+      const checked = checkbox?.checked ?? false;
+
+      item.classList.toggle("checklist-item-checked", checked);
+
+      if (checkbox) {
+        checkbox.disabled = true;
+      }
+    });
+
+    items
+      .sort((a, b) => {
+        const aChecked = a.classList.contains("checklist-item-checked");
+        const bChecked = b.classList.contains("checklist-item-checked");
+        return Number(aChecked) - Number(bChecked);
+      })
+      .forEach((item) => list.appendChild(item));
+  });
+});
+</script>
